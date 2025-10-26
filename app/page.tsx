@@ -1,65 +1,126 @@
-import Image from "next/image";
+import { useEffect, useReducer } from "react";
+import Header from "./Header";
+import Main from "./Main";
+import Loader from "./Loader";
+import Error from "./Error";
+import StartScreen from "./StartScreen";
+import Question from "./Question";
+import NextButton from "./components/NextButton";
+import Progress from "./components/Progress";
+import FinishScreen from "./components/FinishScreen";
+import Footer from "./components/Footer";
+import Timer from "./components/Timer";
 
-export default function Home() {
+
+const SECS_PER_QUESTION = 30;
+
+const initialState = {
+  questions:[],
+
+  //'loading','error','ready','active','finished'
+  status:"loading",
+  index:0,
+  answer:null,
+  points:0,
+  highscore :0,
+  secondsRemaining:10,
+};
+
+function reducer(state,action){
+  switch(action.type){
+    case 'dataReceived':
+      return {
+        ...state,
+        questions:action.payload,
+        status:"ready",
+      }
+    case 'dataFailed':
+      return {
+        ...state,status:'error',
+      }  
+    case 'start' :
+      return {
+        ...state,status:"active",
+        secondsRemaining:state.questions.length * SECS_PER_QUESTION,
+      }
+    case 'newAnswer':
+      const question = state.questions.at(state.index);
+      return {
+        ...state,
+        answer:action.payload,
+        points:
+          action.payload === question.correctOption
+            ? state.points + question.points
+            : state.points,
+      }
+    case 'nextQuestion':
+      return {
+        ...state,
+        index:state.index+1,
+        answer:null,
+      }
+    case 'finish':
+      return {
+        ...state,
+        status:"finished",
+        highscore:
+          state.points > state.highscore ? state.points : state.highscore,
+      };
+    case 'restart':
+      return {
+        ...initialState,questions:state.questions,status:"ready"
+      }; 
+    case 'tick':
+      return {
+        ...state,
+        secondsRemaining:state.secondsRemaining-1,
+        status:state.secondsRemaining === 0 ? "finished" : state.status,
+      }
+    default:
+      throw new Error("Action unknown");  
+  }
+}
+
+function App() {
+  
+  const [{questions,status,index,answer,points,highscore,secondsRemaining},dispatch] = useReducer(reducer,initialState);
+
+  const numQuestions = questions.length;
+  const maxPossiblePoints = questions.reduce((prev,cur)=>prev + cur.points,0);
+
+  useEffect(function(){
+    fetch("/questions.json")
+      .then((res)=>res.json())
+      .then((data)=>{
+        const questionsArray = data.questions;
+        console.log(questionsArray);
+        dispatch({type:'dataReceived',payload:questionsArray})
+      })
+      .catch((err)=>dispatch({type:'dataFailed'}));
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="app">
+      <Header/>
+      <Main>
+        {status==='loading' && <Loader/>}
+        {status==='error' && <Error/>}
+        {status==='ready' && <StartScreen numQuestions={numQuestions} dispatch={dispatch} />}
+        {status === 'active' && (
+          <>
+            <Progress index={index} numQuestions={numQuestions} points={points} maxPossiblePoints={maxPossiblePoints} answer={answer}/>
+            <Question question = {questions[index]} dispatch={dispatch} answer={answer}/>
+            <Footer>
+              <Timer dispatch={dispatch} secondsRemaining={secondsRemaining}/>
+              <NextButton dispatch={dispatch} answer={answer} index={index} numQuestions={numQuestions}/>
+            </Footer>
+          </>
+        )
+        }
+        {status==='finished' && <FinishScreen points={points} maxPossiblePoints={maxPossiblePoints} highscore={highscore} dispatch={dispatch}/>}
+      </Main>
     </div>
   );
 }
+
+export default App;
