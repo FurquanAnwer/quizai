@@ -91,7 +91,7 @@ function App() {
   const maxPossiblePoints = questions.reduce((prev,cur)=>prev + cur.points,0);
 
   useEffect(function(){
-    fetch("/questions.json")
+    fetch("/data/questions.json")
       .then((res)=>res.json())
       .then((data)=>{
         const questionsArray = data.questions;

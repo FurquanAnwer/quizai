@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import Options from './components/Options'
+import Options from './Options'
 
 const Question = ({ question, dispatch, answer }) => {
   return (
