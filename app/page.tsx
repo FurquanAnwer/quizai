@@ -4,9 +4,9 @@ import { useEffect, useReducer } from "react";
 import Header from "./components/Header";
 import Main from "./components/Main";
 import Loader from "./components/Loader";
-import Error from "./components/Error";
+import ErrorComponent from "./components/Error";
 import StartScreen from "./components/StartScreen";
-import Question from "./components/Question";
+import QuestionComponent from "./components/Question";
 import NextButton from "./components/NextButton";
 import Progress from "./components/Progress";
 import FinishScreen from "./components/FinishScreen";
@@ -16,7 +16,35 @@ import Timer from "./components/Timer";
 
 const SECS_PER_QUESTION = 30;
 
-const initialState = {
+interface Question {
+  question: string;
+  options: string[];
+  correctOption: number;
+  points: number;
+}
+
+interface State {
+  questions: Question[];
+  status: 'loading' | 'error' | 'ready' | 'active' | 'finished';
+  index: number;
+  answer: number | null;
+  points: number;
+  highscore: number;
+  secondsRemaining: number;
+}
+
+type ActionType =
+  | { type: 'dataReceived'; payload: Question[] }
+  | { type: 'dataFailed' }
+  | { type: 'start' }
+  | { type: 'newAnswer'; payload: number }
+  | { type: 'nextQuestion' }
+  | { type: 'finish' }
+  | { type: 'restart' }
+  | { type: 'tick' };
+
+
+const initialState : State = {
   questions:[],
 
   //'loading','error','ready','active','finished'
@@ -28,7 +56,10 @@ const initialState = {
   secondsRemaining:10,
 };
 
-function reducer(state,action){
+
+
+
+function reducer(state:State,action:ActionType):State{
   switch(action.type){
     case 'dataReceived':
       return {
@@ -46,7 +77,7 @@ function reducer(state,action){
         secondsRemaining:state.questions.length * SECS_PER_QUESTION,
       }
     case 'newAnswer':
-      const question = state.questions.at(state.index);
+      const question : Question = state.questions.at(state.index)!; //used non-null assertion \\\ I am sure the index is not going out of bounds
       return {
         ...state,
         answer:action.payload,
@@ -79,7 +110,7 @@ function reducer(state,action){
         status:state.secondsRemaining === 0 ? "finished" : state.status,
       }
     default:
-      throw new Error("Action unknown");  
+      throw Error(`Action unknown: ${(action as any).type}`);  
   }
 }
 
@@ -106,12 +137,12 @@ function App() {
       <Header/>
       <Main>
         {status==='loading' && <Loader/>}
-        {status==='error' && <Error/>}
+        {status==='error' && <ErrorComponent/>}
         {status==='ready' && <StartScreen numQuestions={numQuestions} dispatch={dispatch} />}
         {status === 'active' && (
           <>
             <Progress index={index} numQuestions={numQuestions} points={points} maxPossiblePoints={maxPossiblePoints} answer={answer}/>
-            <Question question = {questions[index]} dispatch={dispatch} answer={answer}/>
+            <QuestionComponent question = {questions[index]} dispatch={dispatch} answer={answer}/>
             <Footer>
               <Timer dispatch={dispatch} secondsRemaining={secondsRemaining}/>
               <NextButton dispatch={dispatch} answer={answer} index={index} numQuestions={numQuestions}/>

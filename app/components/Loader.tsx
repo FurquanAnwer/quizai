@@ -1,32 +1,21 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, easeInOut } from 'framer-motion';
 
 const loadingContainerVariants = {
-  start: {
-    transition: {
-      staggerChildren: 0.2,
-    },
-  },
-  end: {
-    transition: {
-      staggerChildren: 0.2,
-    },
-  },
+  start: { transition: { staggerChildren: 0.2 } },
+  end: { transition: { staggerChildren: 0.2 } },
 };
 
 const loadingCircleVariants = {
-  start: {
-    y: '0%',
-  },
-  end: {
-    y: '100%',
-  },
+  start: { y: '0%' as string },
+  end: { y: '100%' as string },
 };
 
 const loadingCircleTransition = {
   duration: 0.5,
-  yoyo: Infinity,
-  ease: 'easeInOut',
+  repeat: Infinity,
+  repeatType: 'reverse' as const,
+  ease: easeInOut, // ✅ fixed
 };
 
 const loadingTextVariants = {
@@ -36,8 +25,9 @@ const loadingTextVariants = {
 
 const loadingTextTransition = {
   duration: 0.8,
-  yoyo: Infinity,
-  ease: 'easeInOut',
+  repeat: Infinity,
+  repeatType: 'reverse' as const,
+  ease: easeInOut, // ✅ fixed
 };
 
 export default function Loader() {

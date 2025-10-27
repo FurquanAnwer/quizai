@@ -2,7 +2,25 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import Options from './Options'
 
-const Question = ({ question, dispatch, answer }) => {
+type ActionType = {
+  type : 'newAnswer';
+  payload : number;
+}
+
+interface Question{
+  question : string;
+  options : string[];
+  correctOption : number;
+  points : number;
+}
+
+interface QuestionItem {
+  question : Question;
+  dispatch : React.Dispatch<ActionType>;
+  answer : number|null;
+}
+
+const Question = ({ question, dispatch, answer } : QuestionItem) => {
   return (
     <motion.div 
       className="bg-white rounded-lg shadow-lg p-6 mb-8"
