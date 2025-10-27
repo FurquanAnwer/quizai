@@ -4,7 +4,17 @@ import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaClock } from 'react-icons/fa'
 
-const Timer = ({ dispatch, secondsRemaining }) => {
+
+type ActionType = {
+  type : "tick";
+}
+
+interface TimerItem {
+  dispatch : React.Dispatch<ActionType> ;
+  secondsRemaining : number;
+}
+
+const Timer = ({ dispatch, secondsRemaining }:TimerItem) => {
   const mins = Math.floor(secondsRemaining / 60)
   const seconds = secondsRemaining % 60
 

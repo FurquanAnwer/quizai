@@ -2,7 +2,19 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { FaArrowRight, FaFlag } from 'react-icons/fa'
 
-const NextButton = ({ dispatch, answer, index, numQuestions }) => {
+type ActionType = {
+  type :'finish' | "nextQuestion";
+}
+
+
+interface NextButtonItems {
+  dispatch : React.Dispatch<ActionType>;
+  answer : number|null;
+  index : number;
+  numQuestions :  number;
+}
+
+const NextButton = ({ dispatch, answer, index, numQuestions }: NextButtonItems) => {
   if (answer === null) return null
 
   const isLastQuestion = index === numQuestions - 1

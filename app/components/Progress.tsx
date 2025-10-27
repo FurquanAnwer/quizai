@@ -1,7 +1,16 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-const Progress = ({ index, numQuestions, points, maxPossiblePoints, answer }) => {
+interface ProgressItems {
+  index : number;
+  numQuestions : number;
+  points : number;
+  maxPossiblePoints : number;
+  answer : number|null;
+}
+
+
+const Progress = ({ index, numQuestions, points, maxPossiblePoints, answer }:ProgressItems) => {
   const progress = ((index + Number(answer !== null)) / numQuestions) * 100
 
   return (

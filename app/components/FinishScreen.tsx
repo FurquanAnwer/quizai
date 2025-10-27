@@ -1,8 +1,20 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, number } from 'framer-motion'
 import { FaRedo } from 'react-icons/fa'
 
-const FinishScreen = ({ points, maxPossiblePoints, highscore, dispatch }) => {
+
+type ActionType= {
+  type : "restart";
+}
+
+interface FinishScreenItems {
+  points : number;
+  maxPossiblePoints : number;
+  highscore : number;
+  dispatch : React.Dispatch<ActionType>;
+}
+
+const FinishScreen = ({ points, maxPossiblePoints, highscore, dispatch }:FinishScreenItems) => {
   const percentage = (points / maxPossiblePoints) * 100
   
   const getEmoji = () => {

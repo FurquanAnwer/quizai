@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 
-const Footer = ({ children }) => {
+const Footer = ({ children }:{children : React.ReactNode}) => {
   return (
     <motion.footer
       className="mt-8 p-4 bg-gray-100 rounded-lg shadow-inner"

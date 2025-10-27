@@ -1,23 +1,18 @@
-// import React from 'react'
-
-// const StartScreen = ({numQuestions,dispatch}) => {
-//   return (
-//     <div className='start'>
-//         <h2>Welcome to the React Quiz!</h2>
-//         <h3>{numQuestions} questions to test your React mastery</h3>
-//         <button className='btn btn-ui' onClick={()=>dispatch({type:"start"})}>Lets start</button>
-//     </div>
-//   )
-// }
-
-// export default StartScreen
 
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaReact, FaRocket } from 'react-icons/fa'
 
-const StartScreen = ({ numQuestions, dispatch }) => {
+type ActionType = {
+  type : "start";
+}
+
+interface StartScreenItem {
+  numQuestions : number;
+  dispatch : React.Dispatch<ActionType>;
+}
+const StartScreen = ({ numQuestions, dispatch } : StartScreenItem) => {
   const [showButton, setShowButton] = useState(false)
   const [progress, setProgress] = useState(0)
 

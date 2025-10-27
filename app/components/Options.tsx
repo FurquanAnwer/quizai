@@ -1,14 +1,32 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-const Options = ({ question, dispatch, answer }) => {
+type ActionType = {
+  type : 'newAnswer';
+  payload : number;
+}
+
+interface Question{
+  question : string;
+  options : string[];
+  correctOption : number;
+  points : number;
+}
+
+interface OptionsItem {
+  question : Question;
+  dispatch : React.Dispatch<ActionType>;
+  answer : number|null;
+}
+
+const Options = ({ question, dispatch, answer }:OptionsItem) => {
   const hasAnswered = answer !== null
 
   return (
     <div className="grid gap-4 mt-8">
-      {question.options.map((option, index) => (
+      {question?.options.map((option, index) => (
         <motion.button
-          key={option}
+          key={index}
           className={`p-4 rounded-lg text-left transition duration-300 ${
             hasAnswered
               ? index === question.correctOption
