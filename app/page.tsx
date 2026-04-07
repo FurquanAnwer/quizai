@@ -19,24 +19,27 @@ const SECS_PER_QUESTION = 30;
 interface Question {
   question: string;
   options: string[];
-  correctOption: number;
-  points: number;
+  answer: string;
+  explanation: string;
+  correctOption?: number;
+  points?: number;
 }
 
 interface State {
   questions: Question[];
-  status: 'loading' | 'error' | 'ready' | 'active' | 'finished';
+  status: 'loading' | 'error' | 'ready' | 'generating' | 'active' | 'finished';
   index: number;
   answer: number | null;
   points: number;
   highscore: number;
   secondsRemaining: number;
+  quizParams: { topic: string; difficulty: string; count: number } | null;
 }
 
 type ActionType =
   | { type: 'dataReceived'; payload: Question[] }
   | { type: 'dataFailed' }
-  | { type: 'start' }
+  | { type: 'start'; payload?: { topic: string; difficulty: string; count: number } }
   | { type: 'newAnswer'; payload: number }
   | { type: 'nextQuestion' }
   | { type: 'finish' }
@@ -46,14 +49,13 @@ type ActionType =
 
 const initialState : State = {
   questions:[],
-
-  //'loading','error','ready','active','finished'
-  status:"loading",
+  status:"ready",
   index:0,
   answer:null,
   points:0,
   highscore :0,
   secondsRemaining:10,
+  quizParams: null,
 };
 
 
@@ -62,10 +64,15 @@ const initialState : State = {
 function reducer(state:State,action:ActionType):State{
   switch(action.type){
     case 'dataReceived':
+      const processedQuestions = action.payload.map((q: Question) => ({
+        ...q,
+        correctOption: q.options.findIndex((opt) => opt === q.answer),
+        points: 10,
+      }));
       return {
         ...state,
-        questions:action.payload,
-        status:"ready",
+        questions: processedQuestions,
+        status: "ready",
       }
     case 'dataFailed':
       return {
@@ -73,8 +80,9 @@ function reducer(state:State,action:ActionType):State{
       }  
     case 'start' :
       return {
-        ...state,status:"active",
-        secondsRemaining:state.questions.length * SECS_PER_QUESTION,
+        ...state,
+        status: "generating",
+        quizParams: action.payload || null,
       }
     case 'newAnswer':
       const question : Question = state.questions.at(state.index)!; //used non-null assertion \\\ I am sure the index is not going out of bounds
@@ -122,23 +130,34 @@ function App() {
   const maxPossiblePoints = questions.reduce((prev,cur)=>prev + cur.points,0);
 
   useEffect(function(){
-    fetch("/data/questions.json")
-      .then((res)=>res.json())
-      .then((data)=>{
-        const questionsArray = data.questions;
-        console.log(questionsArray);
-        dispatch({type:'dataReceived',payload:questionsArray})
+    if (status === 'generating' && quizParams) {
+      fetch("/api/generate-quiz", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quizParams),
       })
-      .catch((err)=>dispatch({type:'dataFailed'}));
-  }, []);
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            dispatch({ type: 'dataFailed' });
+          } else {
+            dispatch({ type: 'dataReceived', payload: data.questions });
+          }
+        })
+        .catch((err) => dispatch({ type: 'dataFailed' }));
+    }
+  }, [status, quizParams]);
 
   return (
     <div className="app">
       <Header/>
       <Main>
         {status==='loading' && <Loader/>}
+        {status==='generating' && <Loader/>}
         {status==='error' && <ErrorComponent/>}
-        {status==='ready' && <StartScreen numQuestions={numQuestions} dispatch={dispatch} />}
+        {status==='ready' && <StartScreen dispatch={dispatch} />}
         {status === 'active' && (
           <>
             <Progress index={index} numQuestions={numQuestions} points={points} maxPossiblePoints={maxPossiblePoints} answer={answer}/>
