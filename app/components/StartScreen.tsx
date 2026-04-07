@@ -5,16 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaReact, FaRocket } from 'react-icons/fa'
 
 type ActionType = {
-  type : "start";
+  type: "start";
+  payload: { topic: string; difficulty: string; count: number };
 }
 
 interface StartScreenItem {
-  numQuestions : number;
-  dispatch : React.Dispatch<ActionType>;
+  dispatch: React.Dispatch<ActionType>;
 }
-const StartScreen = ({ numQuestions, dispatch } : StartScreenItem) => {
+const StartScreen = ({ dispatch } : StartScreenItem) => {
   const [showButton, setShowButton] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [topic, setTopic] = useState('React')
+  const [difficulty, setDifficulty] = useState('medium')
+  const [count, setCount] = useState(10)
 
   useEffect(() => {
     const timer = setTimeout(() => setShowButton(true), 1500)
@@ -50,8 +53,50 @@ const StartScreen = ({ numQuestions, dispatch } : StartScreenItem) => {
         </motion.div>
         <h1 className="text-6xl font-bold mb-6 tracking-tight">Master React</h1>
         <h2 className="text-2xl mb-8 font-light">
-          Prove your expertise with <span className="font-semibold">{numQuestions}</span> mind-bending questions!
+          Generate your custom quiz!
         </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-8 w-full max-w-md"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Topic</label>
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-md text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                placeholder="e.g., React, JavaScript, Python"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Difficulty</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Number of Questions</label>
+              <input
+                type="number"
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+                min="1"
+                max="20"
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+          </div>
+        </motion.div>
         <AnimatePresence>
           {showButton && (
             <motion.button
@@ -61,9 +106,9 @@ const StartScreen = ({ numQuestions, dispatch } : StartScreenItem) => {
               whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(255,255,255,0.5)" }}
               whileTap={{ scale: 0.95 }}
               className="bg-white text-purple-700 font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:bg-purple-100 transition duration-300 flex items-center space-x-2"
-              onClick={() => dispatch({ type: "start" })}
+              onClick={() => dispatch({ type: "start", payload: { topic, difficulty, count } })}
             >
-              <span>Launch Quiz</span>
+              <span>Generate Quiz</span>
               <FaRocket className="text-2xl" />
             </motion.button>
           )}
